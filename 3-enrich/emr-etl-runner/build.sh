@@ -19,8 +19,8 @@
 
 source /usr/local/rvm/scripts/rvm
 
-rvm install jruby-9.1.7.0
-rvm use --default jruby-9.1.7.0
+rvm install jruby-9.1.6.0
+rvm use --default jruby-9.1.6.0
 gem install bundler
 bundle install
 echo 'Running RSpec'
