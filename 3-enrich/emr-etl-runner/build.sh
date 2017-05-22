@@ -17,11 +17,13 @@
 
 # MODIFIED by HaenselAMS (2017-05-22)
 
-source /usr/local/rvm/scripts/rvm
+source ~/.rvm/scripts/rvm
 
 rvm install jruby-9.1.6.0
 rvm use --default jruby-9.1.6.0
 gem install bundler
+bundle install
+bundle update iglu-ruby-client
 bundle install
 echo 'Running RSpec'
 rspec
