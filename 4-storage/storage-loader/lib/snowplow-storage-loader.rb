@@ -25,6 +25,8 @@ require_relative 'snowplow-storage-loader/shredded_type'
 require_relative 'snowplow-storage-loader/redshift_loader'
 require_relative 'snowplow-storage-loader/sanitization'
 
+require_relative 'snowplow-storage-loader/mongo_loader'
+
 module Snowplow
   module StorageLoader
     NAME          = "snowplow-storage-loader"
