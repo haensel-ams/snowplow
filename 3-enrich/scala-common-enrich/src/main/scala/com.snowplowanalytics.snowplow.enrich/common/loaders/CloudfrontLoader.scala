@@ -10,6 +10,11 @@
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
  */
+
+/*
+ * MODIFIED by HaenselAMS on 2017-05-22
+ */
+
 package com.snowplowanalytics.snowplow.enrich.common
 package loaders
 
@@ -99,6 +104,7 @@ object CloudfrontLoader extends Loader[String] {
     case h if (h.startsWith("#Version:") || h.startsWith("#Fields:")) =>
       None.success
     
+    // removed request type check (enables processing POST request sent using navigator.sendBeacon with HAMS JS tracker)
     // 2. Not a GET request
     //case CfRegex(_, _, _, _, _, op, _, _, _, _, _, _) if op.toUpperCase != "GET" =>
     //  s"Only GET operations supported for CloudFront Collector, not ${op.toUpperCase}".failNel[Option[CollectorPayload]]
