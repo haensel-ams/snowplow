@@ -15,10 +15,12 @@
 # Copyright:: Copyright (c) 2015 Snowplow Analytics Ltd
 # License::   Apache License Version 2.0
 
-source ~/.rvm/scripts/rvm
+# MODIFIED by HaenselAMS (2017-05-22)
 
-rvm install jruby-9.1.6.0
-rvm use --default jruby-9.1.6.0
+source /usr/local/rvm/scripts/rvm
+
+rvm install jruby-9.1.7.0
+rvm use --default jruby-9.1.7.0
 gem install bundler
 bundle install
 echo 'Running RSpec'
