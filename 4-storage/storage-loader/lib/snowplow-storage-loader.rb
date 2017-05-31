@@ -30,6 +30,6 @@ require_relative 'snowplow-storage-loader/mongo_loader'
 module Snowplow
   module StorageLoader
     NAME          = "snowplow-storage-loader"
-    VERSION       = "0.10.0"
+    VERSION       = "0.11.0-rc4"
   end
 end
