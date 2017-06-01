@@ -32,9 +32,9 @@ module Snowplow
       # Versions 0.5.0 and earlier of Hadoop Shred don't copy atomic.events into the shredded bucket
       OLD_ENRICHED_PATTERN = /0\.[0-5]\.[0-9](-rc[0-9]+|)/
 
-      # Versions 1.8.0 and earlier of the rdb shredder didn't use the field name
-      # when writing partitioned datasets
-      OLD_SHRED_PATTERN = /[0-1]\.[0-8]\.[0-9](-rc[0-9]+|)/
+      # Versions 0.11.0 and earlier of the rdb shredder didn't use the field names when writing
+      # shredded types
+      OLD_SHRED_PATTERN = /0\.([0-9]|1[0-1])\.[0-9](-rc[0-9]+|)/
 
       SqlStatements = Struct.new(:copy, :analyze, :vacuum)
 
