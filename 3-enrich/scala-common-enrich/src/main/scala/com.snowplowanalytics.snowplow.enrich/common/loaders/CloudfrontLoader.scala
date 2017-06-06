@@ -105,9 +105,6 @@ object CloudfrontLoader extends Loader[String] {
       None.success
     
     // removed request type check (enables processing POST request sent using navigator.sendBeacon with HAMS JS tracker)
-    // 2. Not a GET request
-    //case CfRegex(_, _, _, _, _, op, _, _, _, _, _, _) if op.toUpperCase != "GET" =>
-    //  s"Only GET operations supported for CloudFront Collector, not ${op.toUpperCase}".failNel[Option[CollectorPayload]]
 
     // 4. Row matches CloudFront format
     case CfRegex(date,
