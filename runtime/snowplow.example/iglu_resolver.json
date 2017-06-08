@@ -1,0 +1,28 @@
+{
+  "schema": "iglu:com.snowplowanalytics.iglu/resolver-config/jsonschema/1-0-0",
+  "data": {
+    "cacheSize": 500,
+    "repositories": [
+      {
+        "name": "Iglu Central",
+        "priority": 0,
+        "vendorPrefixes": [ "com.snowplowanalytics" ],
+        "connection": {
+          "http": {
+            "uri": "http://iglucentral.com"
+          }
+        }
+      },
+      {
+        "name": "HAMS Iglu Repo (HTTP)",
+        "priority": 4,
+        "vendorPrefixes": [ "com.haensel-ams" ],
+        "connection": {
+          "http": {
+            "uri": "https://s3-eu-west-1.amazonaws.com/klikki-snowplow-schema" 
+          }
+        }
+      }
+    ]
+  }
+}

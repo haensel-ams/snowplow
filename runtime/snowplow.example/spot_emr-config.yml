@@ -1,0 +1,77 @@
+aws:
+  # Credentials can be hardcoded or set in environment variables
+  access_key_id: <%= ENV['AWS_ACCESS_KEY_ID'] %>
+  secret_access_key: <%= ENV['AWS_SECRET_ACCESS_KEY'] %>
+  s3:
+    region: eu-west-1 # Always set this
+    buckets:
+      assets: s3://<%= ENV['CLIENT_NAME'] %>-snowplow-assets # set to bucket with HAMS modified snowplow
+      jsonpath_assets: s3://<%= ENV['CLIENT_NAME'] %>-snowplow-schema/com.haensel-ams/    # If you have defined your own JSON Schemas, add the s3:// path to your own JSON Path files in your own bucket here
+      log: s3://<%= ENV['CLIENT_NAME'] %>-emr-processing-log/
+      raw:
+        in:                  # Multiple in buckets are permitted
+          - s3://<%= ENV['CLIENT_NAME'] %>-snowplow-logs/          # e.g. s3://my-in-bucket
+          # - ADD HERE
+        processing: s3://<%= ENV['CLIENT_NAME'] %>-snowplow-processing/processing/
+        archive: s3://<%= ENV['CLIENT_NAME'] %>-snowplow-archive/raw/    # e.g. s3://my-archive-bucket/raw
+      enriched:
+        good:   s3://<%= ENV['CLIENT_NAME'] %>-snowplow-out/enriched/good/       # e.g. s3://my-out-bucket/enriched/good
+        bad:    s3://<%= ENV['CLIENT_NAME'] %>-snowplow-out/enriched/bad/        # e.g. s3://my-out-bucket/enriched/bad
+        errors: # Leave blank unless :continue_on_unexpected_error: set to true below
+        archive: s3://<%= ENV['CLIENT_NAME'] %>-snowplow-archive/enriched/  # Where to archive enriched events (we do that in mongo loader)
+      shredded:
+        good: s3://<%= ENV['CLIENT_NAME'] %>-snowplow-out/shredded/good/ # not used in HAMS configuration
+        bad: s3://<%= ENV['CLIENT_NAME'] %>-snowplow-out/shredded/bad/ # not used in HAMS configuration
+        errors: # Leave blank unless :continue_on_unexpected_error: set to true below
+        archive: s3://<%= ENV['CLIENT_NAME'] %>-snowplow-archive/shredded/ # not used in HAMS configuration
+  emr:
+    ami_version: 4.5.0 # Don't change this (certain version of Snowplow JAR needs certain version of EMR AMI)
+    region: eu-west-1 # Always set this
+    jobflow_role: EMR_EC2_DefaultRole # Created using $ aws emr create-default-roles
+    service_role: EMR_DefaultRole     # Created using $ aws emr create-default-roles
+    placement: # leave blank
+    ec2_subnet_id: add_here
+    ec2_key_name: add_here # probably aws_CLIENT_NAME_key
+    bootstrap: []           # Set this to specify custom boostrap actions. Leave empty otherwise
+    software:
+      hbase:                # To launch on cluster, provide version, "0.92.0", keep quotes
+      lingual:              # To launch on cluster, provide version, "1.1", keep quotes
+    # Adjust your Hadoop cluster below
+    jobflow:
+      master_instance_type: m1.medium
+      core_instance_count: 1
+      core_instance_type: m1.medium
+      task_instance_count: 3 # Increase to use spot instances
+      task_instance_type: m1.medium
+      task_instance_bid: 0.045 # bit on spot instance price per hour in USD
+    bootstrap_failure_tries: 3 # Number of times to attempt the job in the event of bootstrap failures
+collectors:
+  format: cloudfront # For example: 'clj-tomcat' for the Clojure Collector, 'thrift' for Thrift records, 'tsv/com.amazon.aws.cloudfront/wd_access_log' for Cloudfront access logs or 'ndjson/urbanairship.connect/v1' for UrbanAirship Connect events
+enrich:
+  job_name: "HAMS Snowplow r88 (with enabled POST request processing)"
+  versions:
+    hadoop_enrich: 1.8.0-hams # HAMS modified snowplow JAR
+    hadoop_shred: 0.7.0 # not used
+    hadoop_elasticsearch: 0.1.0 # not used
+  continue_on_unexpected_error: false # Set to 'true' (and set :out_errors: above) if you don't want any exceptions thrown from ETL
+  output_compression: NONE # use none if you are using HAMS mongo loader
+storage: # this whole section is not used in HAMS configuration, we do our own thing with mongo loader
+  download:
+    folder:
+  targets:
+    - name: "My PostgreSQL database"
+      type: postgres
+      host: "add_here"
+      database: "add_here"
+      port: 5432
+      ssl_mode: disable
+      table: atomic.events
+      username: "add_here"
+      password: "add_here"
+      maxerror:
+      comprows:
+monitoring:
+  tags: {} # Name-value pairs describing this job
+  logging:
+    level: INFO # increase if you want more EMR logs
+
