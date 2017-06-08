@@ -24,6 +24,10 @@ RUN git checkout r88-hams
 WORKDIR /snowplow/3-enrich/emr-etl-runner
 RUN ./build.sh
 
+RUN ~/.rvm/scripts/rvm && rvm install jruby-9.1.6.0 --default
+
+WORKDIR /mnt
+
 #COPY entrypoint.sh /
 #RUN chmod +x /entrypoint.sh
 
