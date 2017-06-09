@@ -13,4 +13,4 @@ export REMOVE_DUPLICATES=false # relevant only for klikki
 
 LOGS=/mnt/logs/`date +snowplow_run_%Y-%m-%d_%H.%M.log`
 
-(/snowplow/3-enrich/hams-emr-etl-runner.sh && /snowplow/4-storage/mongo-loader/hams-mongo-loader.sh) 2>&1 | tee >> ${LOGS}
+(/snowplow/3-enrich/hams-emr-etl-runner.sh && /snowplow/4-storage/mongo-storage/hams-mongo-loader.sh) 2>&1 | tee >> ${LOGS}
