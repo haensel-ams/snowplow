@@ -78,7 +78,7 @@ object CloudfrontLoader extends Loader[String] {
     w + "([\\S]+)"  +   // Referer       / cs(Referer)
     w + "([\\S]+)"  +   // UserAgent     / cs(User Agent)
     w + "([\\S]+)"  +   // Querystring   / cs-uri-query
-    ow + "[\\S]*"   +   // CookieHeader  / cs(Cookie)         added 12 Sep 2012 // TODO: why the *?
+    ow + "([\\S]*)" +   // CookieHeader  / cs(Cookie)         added 12 Sep 2012
     w +  "[\\S]+"   +   // ResultType    / x-edge-result-type added 12 Sep 2012
     w +  "[\\S]+)?" +   // X-Amz-Cf-Id   / x-edge-request-id  added 12 Sep 2012
     ow + "[\\S]+"   +   // XHostHeader   / x-host-header      added 21 Oct 2013
@@ -87,6 +87,9 @@ object CloudfrontLoader extends Loader[String] {
     ow + "[\\S]+"   +   // TimeTaken     / time-taken         added 29 Apr 2014
     w +      ".*)?").r  // Anything added in the future by Amazon  
   }
+  
+  private val hamsUidCookie = (".*hams_uid[\\s]*=[\\s]*([a-z0-9]*).*").r
+  private val structEvent = (""".*(^|&)e=se(&|$).*""").r
 
   /**
    * Converts the source string into a 
@@ -106,7 +109,7 @@ object CloudfrontLoader extends Loader[String] {
     
     // removed request type check (enables processing POST request sent using navigator.sendBeacon with HAMS JS tracker)
     // 2. Not a GET request
-    //case CfRegex(_, _, _, _, _, op, _, _, _, _, _, _) if op.toUpperCase != "GET" =>
+    //case CfRegex(_, _, _, _, _, op, _, _, _, _, _, _, _) if op.toUpperCase != "GET" =>
     //  s"Only GET operations supported for CloudFront Collector, not ${op.toUpperCase}".failNel[Option[CollectorPayload]]
 
     // 4. Row matches CloudFront format
@@ -121,12 +124,22 @@ object CloudfrontLoader extends Loader[String] {
                  _,
                  rfr,
                  ua,
-                 qs) => {
+                 qs,
+                 cks) => {
+
+      val hams_uid = cks match {
+          case hamsUidCookie(hams_uid) => hams_uid
+          case _ => ""
+      } 
 
       // Validations, and let's strip double-encodings
       val timestamp = toTimestamp(date, time)
+      
+      var modified_qs : String = qs
+      if (structEvent.pattern.matcher(qs).matches) modified_qs = qs+"&uid="+hams_uid
+      
       val querystring = {
-        val q = toOption(singleEncodePcts(qs))
+        val q = toOption(singleEncodePcts(modified_qs))
         parseQuerystring(q, CollectorEncoding)
       }
 
@@ -136,7 +149,7 @@ object CloudfrontLoader extends Loader[String] {
       val referer = toOption(refr) map toCleanUri
 
       val api = CollectorApi.parse(objct)
-
+      
       (timestamp.toValidationNel |@| querystring.toValidationNel |@| api.toValidationNel) { (t, q, a) =>
         CollectorPayload(
           q,
@@ -148,7 +161,7 @@ object CloudfrontLoader extends Loader[String] {
           toOption(userAgent),
           referer,
           Nil,  // No headers for CloudFront
-          None, // No collector-set user ID for CloudFront
+          None,
           a,    // API vendor/version
           None, // No content type
           None  // No request body
