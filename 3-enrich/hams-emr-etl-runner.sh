@@ -28,7 +28,7 @@ for ATTEMPT in `seq $TOTAL_RETRIES`
 do
     echo "Running EmrEtlRunner (attempt $ATTEMPT/$TOTAL_RETRIES)..."
     
-    ${SNOWPLOW_HOME}/3-enrich/emr-etl-runner/deploy/snowplow-emr-etl-runner --skip shred --config ${RUNNER_CONFIG} --resolver ${RUNNER_RESOLVER} --enrichments ${RUNNER_ENRICHMENTS}
+    ${SNOWPLOW_HOME}/3-enrich/emr-etl-runner/bin/snowplow-emr-etl-runner --skip shred --config ${RUNNER_CONFIG} --resolver ${RUNNER_RESOLVER} --enrichments ${RUNNER_ENRICHMENTS}
     EMR_RUNNER_EXIT_STATUS=$?
 
     # reset the buckets to their initial state if the EMR run failed
