@@ -12,7 +12,7 @@ for RUN_RESULTS in `aws s3 ls ${ALL_RUNS} | grep PRE | awk '{print $NF}'`; do
         DOWNLOAD_EXIT_STATUS=$?
         if [ ${DOWNLOAD_EXIT_STATUS} -ne 0 ]; then
             >&2 echo "Download of the event file ${EVENT_FILE} has failed!"
-            aws ses send-email --destination ToAddresses=peter@haensel-ams.com --message 'Subject={Data="Snowplow loader has failed for '${CLIENT_NAME}'",Charset=utf-8},Body={Text={Data="This is an automated email. Check logs on the snowplow instance for details.",Charset=utf-8}}' --from peter@haensel-ams.com
+            aws ses send-email --destination ToAddresses=${NOTIFICATION_RECIPIENT} --message 'Subject={Data="Snowplow loader has failed for '${CLIENT_NAME}'",Charset=utf-8},Body={Text={Data="Reason: downloading processed data has failed!\nThis is an automated email. Check logs on the snowplow instance for details.",Charset=utf-8}}' --from ${NOTIFICATION_SENDER}
             exit $DOWNLOAD_EXIT_STATUS
         fi
         if [ ${REMOVE_DUPLICATES} = "true" ]; then
@@ -22,13 +22,15 @@ for RUN_RESULTS in `aws s3 ls ${ALL_RUNS} | grep PRE | awk '{print $NF}'`; do
             echo "  size with duplicates removed: `du -sh /tmp/snowplow_events`"
         fi
         echo " importing to mongo..."
-        mongoimport --host ${MONGO_HOST} --db ${MONGO_DB} --collection ${MONGO_COLLECTION} --type tsv --file /tmp/snowplow_events --fieldFile "${MONGO_STORAGE_RESOURCES}/atomic_events_header.csv"
-        IMPORT_EXIT_STATUS=$?
-        if [ ${IMPORT_EXIT_STATUS} -ne 0 ]; then
-            >&2 echo "Import of the event file ${EVENT_FILE} into MongoDB has failed!"
-            aws ses send-email --destination ToAddresses=peter@haensel-ams.com --message 'Subject={Data="Snowplow loader has failed for '${CLIENT_NAME}'",Charset=utf-8},Body={Text={Data="This is an automated email. Check logs on the snowplow instance for details.",Charset=utf-8}}' --from peter@haensel-ams.com
-            exit $IMPORT_EXIT_STATUS
-        fi
+        for COLLECTION_NAME in ${MONGO_COLLECTION}; do
+            mongoimport --host ${MONGO_HOST} --db ${MONGO_DB} --collection ${COLLECTION_NAME} --type tsv --file /tmp/snowplow_events --fieldFile "${MONGO_STORAGE_RESOURCES}/atomic_events_header.csv"
+            IMPORT_EXIT_STATUS=$?
+            if [ ${IMPORT_EXIT_STATUS} -ne 0 ]; then
+                >&2 echo "Import of the event file ${EVENT_FILE} into MongoDB has failed!"
+                aws ses send-email --destination ToAddresses=${NOTIFICATION_RECIPIENT} --message 'Subject={Data="Snowplow loader has failed for '${CLIENT_NAME}'",Charset=utf-8},Body={Text={Data="Reason: mongoimport has failed!\nThis is an automated email. Check logs on the snowplow instance for details.",Charset=utf-8}}' --from ${NOTIFICATION_SENDER}
+                exit $IMPORT_EXIT_STATUS
+            fi
+        done
         rm -f /tmp/snowplow_events
     done
 done
