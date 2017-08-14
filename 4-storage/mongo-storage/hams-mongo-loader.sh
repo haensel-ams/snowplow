@@ -12,7 +12,6 @@ for RUN_RESULTS in `aws s3 ls ${ALL_RUNS} | grep PRE | awk '{print $NF}'`; do
         DOWNLOAD_EXIT_STATUS=$?
         if [ ${DOWNLOAD_EXIT_STATUS} -ne 0 ]; then
             >&2 echo "Download of the event file ${EVENT_FILE} has failed!"
-            aws ses send-email --destination ToAddresses=${NOTIFICATION_RECIPIENT} --message 'Subject={Data="Snowplow loader has failed for '${CLIENT_NAME}'",Charset=utf-8},Body={Text={Data="Reason: downloading processed data has failed!\nThis is an automated email. Check logs on the snowplow instance for details.",Charset=utf-8}}' --from ${NOTIFICATION_SENDER}
             exit $DOWNLOAD_EXIT_STATUS
         fi
         if [ ${REMOVE_DUPLICATES} = "true" ]; then
@@ -27,7 +26,6 @@ for RUN_RESULTS in `aws s3 ls ${ALL_RUNS} | grep PRE | awk '{print $NF}'`; do
             IMPORT_EXIT_STATUS=$?
             if [ ${IMPORT_EXIT_STATUS} -ne 0 ]; then
                 >&2 echo "Import of the event file ${EVENT_FILE} into MongoDB has failed!"
-                aws ses send-email --destination ToAddresses=${NOTIFICATION_RECIPIENT} --message 'Subject={Data="Snowplow loader has failed for '${CLIENT_NAME}'",Charset=utf-8},Body={Text={Data="Reason: mongoimport has failed!\nThis is an automated email. Check logs on the snowplow instance for details.",Charset=utf-8}}' --from ${NOTIFICATION_SENDER}
                 exit $IMPORT_EXIT_STATUS
             fi
         done

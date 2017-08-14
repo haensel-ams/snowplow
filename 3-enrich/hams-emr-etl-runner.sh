@@ -47,9 +47,5 @@ do
     fi
 done
 
-if [ ${EMR_RUNNER_EXIT_STATUS} -ne 0 ]; then
-    aws ses send-email --destination ToAddresses=peter@haensel-ams.com --message 'Subject={Data="Snowplow EMR ETL run has failed for '${CLIENT_NAME}'",Charset=utf-8},Body={Text={Data="This is an automated email. Check logs on the snowplow instance for details.",Charset=utf-8}}' --from peter@haensel-ams.com
-fi
-
 # we count on the correct value of this exit code in the parent calling script
 exit $EMR_RUNNER_EXIT_STATUS
