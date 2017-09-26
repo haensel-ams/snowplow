@@ -19,7 +19,8 @@ RUN /bin/bash -l -c "/etc/profile.d/rvm.sh && gem install bundler --no-ri --no-r
 WORKDIR /
 RUN git clone https://github.com/haensel-ams/snowplow.git
 WORKDIR /snowplow
-RUN git checkout r88-hams
+run git fetch
+RUN git checkout hams-geoip
 
 WORKDIR /snowplow/3-enrich/emr-etl-runner
 RUN ./build.sh
